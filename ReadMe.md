@@ -27,3 +27,5 @@ Una de las funciones clave de este software es la posibilidad de registrar el **
 Este proyecto es un componente esencial en nuestra formación como **ingenieros de software**, ya que nos permite aplicar los conceptos de la **Administración de Proyectos de Software**. Nos brinda la oportunidad de poner en práctica habilidades clave en gestión de proyectos, programación y análisis de datos para desarrollar soluciones útiles que optimicen la planificación y administración de proyectos reales.
 
 ---
+
+📄 [**Documentación Completa**](https://drive.google.com/drive/folders/1YHWXwgtzO0_fsV2W23GwFI9aScuq73Iz?usp=drive_link)
