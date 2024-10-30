@@ -1,4 +1,4 @@
-# 🚀 Proyecto de Administración de proyectos de Software - **Ruta Crítica**
+# 🚀 **Ruta Crítica**
 
 Este proyecto tiene como objetivo crear un software que ayude a **planificar y organizar proyectos** de manera avanzada. La herramienta se enfoca en identificar las tareas más importantes y los posibles retrasos que puedan afectar la duración total del proyecto.
 
