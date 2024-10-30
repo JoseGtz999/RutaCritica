@@ -1,4 +1,4 @@
-# 🚀 Proyecto de Gestión - **Ruta Crítica**
+# 🚀 Proyecto de Administración de proyectos de Software - **Ruta Crítica**
 
 Este proyecto tiene como objetivo crear un software que ayude a **planificar y organizar proyectos** de manera avanzada. La herramienta se enfoca en identificar las tareas más importantes y los posibles retrasos que puedan afectar la duración total del proyecto.
 
@@ -24,6 +24,6 @@ Una de las funciones clave de este software es la posibilidad de registrar el **
 
 ## 🎯 Propósito del Proyecto
 
-Este proyecto es una parte importante de nuestra formación como **ingenieros de software**, ya que nos permite aplicar conceptos clave de la **gestión de proyectos**, la programación y el análisis de datos. Nos brinda la oportunidad de poner en práctica nuestras habilidades en el desarrollo de **soluciones útiles** para la planificación y administración de proyectos.
+Este proyecto es un componente esencial en nuestra formación como **ingenieros de software**, ya que nos permite aplicar los conceptos de la **Administración de Proyectos de Software**. Nos brinda la oportunidad de poner en práctica habilidades clave en gestión de proyectos, programación y análisis de datos para desarrollar soluciones útiles que optimicen la planificación y administración de proyectos reales.
 
 ---
