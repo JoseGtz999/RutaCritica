@@ -1,0 +1,26 @@
+# requirements.txt
+
+# Framework principal
+fastapi>=0.70.0
+
+# Librerías de manipulación de datos
+pandas>=1.3.0
+numpy>=1.21.0
+
+# Visualización
+matplotlib>=3.4.3
+
+# Representación de redes de dependencias
+networkx>=2.6.3
+
+# Conexión a PostgreSQL
+psycopg2-binary>=2.9.1
+
+# Conexión a Google Sheets (opcional)
+gspread>=5.0.0
+
+# Generación de informes en PDF
+reportlab>=3.6.0
+
+# Para el servidor ASGI si deseas correr FastAPI en producción
+uvicorn[standard]>=0.15.0

@@ -1,0 +1,7 @@
+# Ignorar la carpeta del entorno virtual
+venv/
+
+# Archivos y carpetas adicionales que pueden ser ignorados
+__pycache__/
+*.pyc
+*.pyo
