@@ -1,5 +1,5 @@
 # Ignorar la carpeta del entorno virtual
-rutaCriticaVenv/
+rutaCriticaVenv
 
 # Archivos y carpetas adicionales que pueden ser ignorados
 __pycache__/
