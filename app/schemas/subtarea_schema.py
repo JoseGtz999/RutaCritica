@@ -11,4 +11,4 @@ class SubtareaSchema(BaseModel):
     tiempo_esperado: float = None
 
     class Config:
-        orm_mode = True  # Habilita compatibilidad con ORMs para interactuar con modelos
+        from_attributes = True  # Habilita compatibilidad con ORMs para interactuar con modelos

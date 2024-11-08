@@ -1,35 +1,37 @@
 # app/api/endpoints.py
-from fastapi import APIRouter
-from ..schemas.hito_schema import HitoSchema
-from ..models.hito import Hito
-from ..models.tarea import Tarea  # Importa el modelo Tarea
-from ..models.subtarea import Subtarea  # Importa el modelo Subtarea
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from ..schemas.proyecto_schema import ProyectoSchema  # Esquema de Proyecto
+from ..services.proyecto_service import insertar_proyecto  # Servicio de inserción de proyecto
+from ..database import get_db  # Dependencia de sesión DB
 from ..services.calculos_totales import CalculosTotales
 
 router = APIRouter()
 
-# Endpoint para crear un hito
-@router.post("/rutaCritica/hitos")
-async def crear_hito(hito: HitoSchema):
-    nuevo_hito = Hito(nombre=hito.nombre, tareas=[])
-
-    # Añadimos las tareas y subtareas del hito
-    for tarea_data in hito.tareas:
-        tarea = Tarea(nombre=tarea_data.nombre, subtareas=[])
-        for subtarea_data in tarea_data.subtareas:
-            subtarea = Subtarea(
-                nombre=subtarea_data.nombre,
-                tiempo_probable=subtarea_data.tiempo_probable
-            )
-            tarea.agregar(subtarea)  # Agrega la subtarea a la tarea
-        nuevo_hito.tareas.append(tarea)  # Agrega la tarea al hito
-
-    # Devuelve un mensaje de éxito al crear el hito
-    return {"message": f"Hito '{nuevo_hito.nombre}' creado exitosamente"}
+# Endpoint para crear un proyecto
+@router.post("/rutaCritica/proyectos")
+async def crear_proyecto(proyecto: ProyectoSchema, db: AsyncSession = Depends(get_db)):
+    try:
+        # Llama a la función asincrónica `insertar_proyecto` para guardar el proyecto en la BD
+        nuevo_proyecto = await insertar_proyecto(
+            db,
+            nombre=proyecto.nombre,
+            descripcion=proyecto.descripcion,
+            hitos_data=proyecto.hitos
+        )
+        # Devuelve un mensaje de éxito al crear el proyecto
+        return {"message": f"Proyecto '{nuevo_proyecto.nombre}' creado exitosamente"}
+    except Exception as e:
+        # Manejo de errores y devolución de una respuesta HTTP de error
+        raise HTTPException(status_code=400, detail=f"Error al crear el proyecto: {str(e)}")
 
 # Endpoint para obtener cálculos totales
 @router.get("/rutaCritica/calculos")
 async def obtener_calculos_totales():
-    calculos_totales = CalculosTotales(hitos).calcular_totales()
-    return calculos_totales
-
+    try:
+        # Llama a la función calcular_totales para obtener cálculos
+        calculos_totales = CalculosTotales().calcular_totales()
+        return calculos_totales
+    except Exception as e:
+        # Manejo de errores y devolución de una respuesta HTTP de error
+        raise HTTPException(status_code=400, detail=f"Error al obtener cálculos: {str(e)}")

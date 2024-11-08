@@ -13,4 +13,4 @@ class TareaSchema(BaseModel):
     tiempo_esperado: float = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True

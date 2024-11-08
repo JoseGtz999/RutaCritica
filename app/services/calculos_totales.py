@@ -1,10 +1,10 @@
 # app/services/calculos_totales.py
 import math
 from typing import List
-from ..models.hito import Hito
+from ..models.hito_db import HitoDB
 
 class CalculosTotales:
-    def __init__(self, hitos: List[Hito]):
+    def __init__(self, hitos: List[HitoDB]):
         self.hitos = hitos
 
     def calcular_totales(self):

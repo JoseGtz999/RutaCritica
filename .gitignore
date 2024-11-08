@@ -5,3 +5,14 @@ rutaCriticaVenv
 __pycache__/
 *.pyc
 *.pyo
+
+# Ignorar base de datos SQLite local
+*.db
+
+# Ignorar los archivos generados por Alembic, como el archivo de configuración de Alembic (alembic.ini)
+alembic.ini
+
+# Ignorar cualquier otro archivo temporal o de configuración local que no deba ser compartido
+*.log
+__pycache__/
+*.pyc
