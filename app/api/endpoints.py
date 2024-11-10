@@ -1,10 +1,14 @@
-# app/api/endpoints.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..schemas.proyecto_schema import ProyectoSchema  # Esquema de Proyecto
-from ..services.proyecto_service import insertar_proyecto  # Servicio de inserción de proyecto
-from ..database import get_db  # Dependencia de sesión DB
-from ..services.calculos_totales import CalculosTotales
+from sqlalchemy.future import select
+from sqlalchemy.orm import joinedload
+
+from ..schemas.proyecto_schema import ProyectoSchema
+from ..services.proyecto_service import insertar_proyecto
+from ..database import get_db
+from ..services.calculos_proyecto_service import CalculosProyectoService
+from ..models.hito_db import HitoDB
+from ..models.tarea_db import TareaDB
 
 router = APIRouter()
 
@@ -12,26 +16,38 @@ router = APIRouter()
 @router.post("/rutaCritica/proyectos")
 async def crear_proyecto(proyecto: ProyectoSchema, db: AsyncSession = Depends(get_db)):
     try:
-        # Llama a la función asincrónica `insertar_proyecto` para guardar el proyecto en la BD
         nuevo_proyecto = await insertar_proyecto(
             db,
             nombre=proyecto.nombre,
             descripcion=proyecto.descripcion,
             hitos_data=proyecto.hitos
         )
-        # Devuelve un mensaje de éxito al crear el proyecto
         return {"message": f"Proyecto '{nuevo_proyecto.nombre}' creado exitosamente"}
     except Exception as e:
-        # Manejo de errores y devolución de una respuesta HTTP de error
         raise HTTPException(status_code=400, detail=f"Error al crear el proyecto: {str(e)}")
 
 # Endpoint para obtener cálculos totales
 @router.get("/rutaCritica/calculos")
-async def obtener_calculos_totales():
+async def obtener_calculos_totales(db: AsyncSession = Depends(get_db)):
     try:
-        # Llama a la función calcular_totales para obtener cálculos
-        calculos_totales = CalculosTotales().calcular_totales()
+        # Consulta los hitos, tareas y subtareas utilizando joinedload
+        resultado = await db.execute(
+            select(HitoDB)
+            .options(
+                joinedload(HitoDB.tareas)  # Cargar tareas asociadas al hito
+                .joinedload(TareaDB.subtareas)  # Cargar subtareas asociadas a las tareas
+            )
+        )
+
+        # Obtener los hitos cargados con tareas y subtareas
+        hitos_list = resultado.scalars().unique().all()
+
+        # Instancia el servicio de cálculos de proyecto con los hitos
+        calculos_servicio = CalculosProyectoService(hitos=hitos_list)
+
+        # Ejecuta los cálculos
+        calculos_totales = calculos_servicio.ejecutar_calculos()
+
         return calculos_totales
     except Exception as e:
-        # Manejo de errores y devolución de una respuesta HTTP de error
         raise HTTPException(status_code=400, detail=f"Error al obtener cálculos: {str(e)}")
