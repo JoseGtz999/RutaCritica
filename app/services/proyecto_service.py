@@ -1,44 +1,67 @@
-# app/services/proyecto_service.py
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import HTTPException
+from typing import List, Dict
 from app.models.proyecto_db import ProyectoDB
 from app.models.hito_db import HitoDB
 from app.models.tarea_db import TareaDB
 from app.models.subtarea_db import SubtareaDB
+from app.models.subtarea_db import SubtareaDB
+from sqlalchemy import select
 
-async def insertar_proyecto(db: AsyncSession, nombre: str, descripcion: str, hitos_data: list):
-    # Crear una instancia de ProyectoDB
-    proyecto = ProyectoDB(nombre=nombre, descripcion=descripcion)
 
-    # Iterar sobre los datos de los hitos
-    for hito_data in hitos_data:
-        # Accede a los atributos de hito_data correctamente
-        hito = HitoDB(
-            nombre=hito_data.nombre,  # Acceder como atributo, no como índice
-            tiempo_optimista=hito_data.tiempo_optimista,  # Acceder como atributo
-            tiempo_pesimista=hito_data.tiempo_pesimista,
-            tiempo_esperado=hito_data.tiempo_esperado,
-            proyecto=proyecto
-        )
+async def insertar_datos_proyecto(
+    db: AsyncSession,
+    nombre_proyecto: str,
+    descripcion: str,
+    datos: List[Dict[str, str]]  # Lista de diccionarios con los datos validados del CSV
+):
+    try:
+        # Crear un nuevo proyecto en la base de datos
+        nuevo_proyecto = ProyectoDB(nombre=nombre_proyecto, descripcion=descripcion)
+        db.add(nuevo_proyecto)
+        await db.commit()
+        await db.refresh(nuevo_proyecto)
 
-        # Crear tareas y subtareas
-        for tarea_data in hito_data.tareas:  # Acceder a tareas como atributo
-            tarea = TareaDB(nombre=tarea_data.nombre, hito=hito)
-            for subtarea_data in tarea_data.subtareas:  # Acceder como atributo
-                subtarea = SubtareaDB(
-                    nombre=subtarea_data.nombre,
-                    tiempo_probable=subtarea_data.tiempo_probable,
-                    tiempo_optimista=subtarea_data.tiempo_optimista,
-                    tiempo_pesimista=subtarea_data.tiempo_pesimista,
-                    tiempo_esperado=subtarea_data.tiempo_esperado,
-                    tarea=tarea
+        # Crear hitos, tareas y subtareas basados en los datos validados del CSV
+        for fila in datos:
+            # Crear el hito si no existe en el proyecto actual
+            hito_obj = HitoDB(
+                nombre=fila["hito"],  # Nombre del hito desde el CSV
+                proyecto_id=nuevo_proyecto.id
+            )
+            db.add(hito_obj)
+            await db.commit()
+            await db.refresh(hito_obj)
+
+            # Crear la tarea
+            tarea_obj = TareaDB(
+                nombre=fila["tarea"],  # Nombre de la tarea desde el CSV
+                hito_id=hito_obj.id
+            )
+            db.add(tarea_obj)
+            await db.commit()
+            await db.refresh(tarea_obj)
+
+            # Verificar si "dependencia" es un nombre de otra subtarea
+            dependencia_obj = None
+            if fila.get("dependencia"):
+                dependencia_obj = await db.execute(
+                    select(SubtareaDB).filter(SubtareaDB.nombre == fila["dependencia"])
                 )
-                db.add(subtarea)
+                dependencia_obj = dependencia_obj.scalar_one_or_none()
 
-            db.add(tarea)
-        
-        db.add(hito)
+            # Crear la subtarea
+            subtarea_obj = SubtareaDB(
+                nombre=fila["subtarea"],  # Nombre de la subtarea desde el CSV
+                dependencia=dependencia_obj,  # Dependencia como objeto
+                tiempo_esperado=float(fila.get("tiempo esperado", 0)),  # Tiempo esperado desde el CSV
+                tarea_id=tarea_obj.id
+            )
+            db.add(subtarea_obj)
+            await db.commit()
 
-    db.add(proyecto)
-    await db.commit()  # Guardar los cambios de forma asincrónica
-    await db.refresh(proyecto)  # Actualizar la instancia del proyecto
-    return proyecto
+        return {"message": f"Proyecto '{nuevo_proyecto.nombre}' creado exitosamente"}
+
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al insertar datos en la base de datos: {str(e)}")

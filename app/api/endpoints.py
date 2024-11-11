@@ -4,7 +4,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
 
 from ..schemas.proyecto_schema import ProyectoSchema
-from ..services.proyecto_service import insertar_proyecto
+from ..services.proyecto_service import insertar_datos_proyecto
 from ..database import get_db
 from ..services.calculos_proyecto_service import CalculosProyectoService
 from ..models.hito_db import HitoDB
@@ -16,7 +16,7 @@ router = APIRouter()
 @router.post("/rutaCritica/proyectos")
 async def crear_proyecto(proyecto: ProyectoSchema, db: AsyncSession = Depends(get_db)):
     try:
-        nuevo_proyecto = await insertar_proyecto(
+        nuevo_proyecto = await insertar_datos_proyecto(
             db,
             nombre=proyecto.nombre,
             descripcion=proyecto.descripcion,
