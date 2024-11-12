@@ -1,19 +1,19 @@
-"""segunda migracion
+"""Initial migration
 
-Revision ID: 8e92eab5fa28
-Revises: 0ae50ae983d7
-Create Date: 2024-11-08 10:54:15.688454
+Revision ID: 157f94e7872b
+Revises: 
+Create Date: 2024-11-11 22:04:11.442966
 
 """
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '8e92eab5fa28'
-down_revision: Union[str, None] = '0ae50ae983d7'
+revision: str = '157f94e7872b'
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -63,8 +63,8 @@ def upgrade() -> None:
     sa.Column('tiempo_pesimista', sa.Float(), nullable=False),
     sa.Column('tiempo_esperado', sa.Float(), nullable=False),
     sa.Column('tarea_id', sa.Integer(), nullable=True),
-    sa.Column('dependencia_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['dependencia_id'], ['subtareas.id'], ),
+    sa.Column('dependencia_id', postgresql.ARRAY(sa.Integer()), nullable=True),
+    sa.Column('subtarea_id_csv', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['tarea_id'], ['tareas.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

@@ -5,15 +5,29 @@ from io import StringIO
 class CSVValidacionService:
     def __init__(self, file):
         self.file = file  # El archivo se pasa como un objeto StringIO
-        self.required_columns = ["hito", "tarea", "subtarea", "dependencia", "tiempo esperado"]
+        self.required_columns = ["hito", "tarea", "subtareaID", "subtarea", "dependencia", "tiempo esperado"]
 
     def cargar_csv(self) -> List[Dict[str, Any]]:
         """
-        Carga el archivo CSV desde el archivo en memoria y devuelve las filas como un diccionario.
+        Carga el archivo CSV desde el archivo en memoria y devuelve las filas como un diccionario,
+        filtrando duplicados en "hito", "tarea" y "subtarea".
         """
         self.file.seek(0)  # Asegúrate de que el archivo está al principio
         reader = csv.DictReader(self.file)
-        return list(reader)
+        
+        filas_unicas = []
+        combinaciones_vistas = set()  # Usamos un set para almacenar combinaciones únicas de (hito, tarea, subtarea)
+        
+        for fila in reader:
+            # Crear una tupla con la combinación de hito, tarea y subtarea para verificar duplicados
+            combinacion = (fila["hito"], fila["tarea"], fila["subtarea"])
+            if combinacion not in combinaciones_vistas:
+                combinaciones_vistas.add(combinacion)
+                # Asignamos el subtareaID desde el CSV
+                fila["subtarea_id_csv"] = fila["subtareaID"]
+                filas_unicas.append(fila)
+        
+        return filas_unicas
 
     def validar_estructura(self, filas: List[Dict[str, Any]]) -> List[str]:
         """
@@ -83,5 +97,3 @@ class CSVValidacionService:
         if errores:
             return {"estado": "error", "errores": errores}
         return {"estado": "exito", "mensaje": "Archivo CSV validado correctamente."}
-
-
