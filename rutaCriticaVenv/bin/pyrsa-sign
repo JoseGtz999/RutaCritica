@@ -1,4 +1,4 @@
-#!/home/josegtz/Documentos/RutaCritica/rutaCriticaVenv/bin/python3.10
+#!/home/josegtz/Documentos/RutaCritica/rutaCriticaVenv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
