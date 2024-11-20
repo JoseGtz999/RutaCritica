@@ -5,7 +5,7 @@ from io import StringIO
 class CSVValidacionService:
     def __init__(self, file):
         self.file = file  # El archivo se pasa como un objeto StringIO
-        self.required_columns = ["hito", "tarea", "subtareaID", "subtarea", "dependencia", "tiempo esperado"]
+        self.required_columns = ["hito", "tarea", "subtareaID", "subtarea", "dependencia", "tiempo probable"]
 
     def cargar_csv(self) -> List[Dict[str, Any]]:
         """
@@ -56,7 +56,7 @@ class CSVValidacionService:
 
         for idx, fila in enumerate(filas, 1):
             # Validar tiempos como valores numéricos
-            for campo in ["tiempo esperado"]:
+            for campo in ["tiempo probable"]:
                 try:
                     valor = float(fila[campo])
                     if valor < 0:

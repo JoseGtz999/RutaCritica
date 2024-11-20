@@ -9,12 +9,12 @@ class SubtareaDB(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, index=True, nullable=False)
-    tiempo_probable = Column(Float, nullable=False, default=0.0)
+    PERT = Column(Float, nullable=False, default=0.0)
     tiempo_optimista = Column(Float, nullable=False, default=0.0)
     tiempo_pesimista = Column(Float, nullable=False, default=0.0)
-    tiempo_esperado = Column(Float, nullable=False, default=0.0)
+    tiempo_probable = Column(Float, nullable=False, default=0.0)
     tarea_id = Column(Integer, ForeignKey("tareas.id"))
-    dependencia_id = Column(ARRAY(Integer), nullable=True, default=list)  # Usar ARRAY para listas de enteros
-    subtarea_id_csv = Column(Integer, nullable=True, default=0.0)
+    dependencia_id = Column(ARRAY(String), nullable=True, default=list)  # Usar ARRAY para listas de enteros
+    subtarea_id_csv = Column(String, nullable=True, default="0") # Cambiar a String para almacenar '1.1.1'
 
     tarea = relationship("TareaDB", back_populates="subtareas")

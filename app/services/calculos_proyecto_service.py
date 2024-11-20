@@ -17,7 +17,7 @@ class CalculosProyectoService:
         """
         tiempo_optimista = subtarea.tiempo_probable - 1
         tiempo_pesimista = subtarea.tiempo_probable + 2
-        duracion_pert = (subtarea.tiempo_optimista + 4 * subtarea.tiempo_probable + subtarea.tiempo_pesimista) / 6
+        duracion_pert = (tiempo_optimista + subtarea.tiempo_probable *4+ tiempo_pesimista) / 6
         return {
             "tiempo_optimista": tiempo_optimista,
             "tiempo_pesimista": tiempo_pesimista,
@@ -59,8 +59,13 @@ class CalculosProyectoService:
         suma_varianzas = sum(self.calcular_tiempos_hito(hito)["varianza"] for hito in self.hitos)
         desviacion_estandar_total = math.sqrt(suma_varianzas)
 
-        # Cálculo de PERT total (suma de tiempos esperados de cada hito)
-        pert_total = sum(hito.tiempo_optimista_total for hito in self.hitos)
+        # Cálculo de PERT total (suma de duraciones PERT de todas las subtareas en el proyecto)
+        pert_total = sum(
+            self.calcular_tiempos_subtarea(subtarea)["duracion_pert"]
+            for hito in self.hitos
+            for tarea in hito.tareas
+            for subtarea in tarea.subtareas
+        )
 
         # Cálculo de tiempos más optimista y más pesimista para el proyecto
         tiempo_optimista_proyecto = pert_total - 2 * desviacion_estandar_total
@@ -72,6 +77,7 @@ class CalculosProyectoService:
             "tiempo_optimista_proyecto": tiempo_optimista_proyecto,
             "tiempo_pesimista_proyecto": tiempo_pesimista_proyecto
         }
+
 
     # 4. Método principal para ejecutar todos los cálculos
     def ejecutar_calculos(self):

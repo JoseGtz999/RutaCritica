@@ -41,6 +41,8 @@ async def insertar_datos_proyecto(
         await db.refresh(nuevo_proyecto)
 
         # Crear hitos, tareas y subtareas basados en los datos validados del CSV
+        subtarea_id_map = {}  # Para mapear subtareaID con sus objetos SubtareaDB
+
         for fila in datos:
             # Verificar si el hito ya existe en el proyecto actual
             hito_obj = await db.execute(
@@ -74,61 +76,46 @@ async def insertar_datos_proyecto(
                 await db.commit()
                 await db.refresh(tarea_obj)
 
-            # Verificar si "dependencia" es un nombre de otra subtarea
-            dependencia_obj = None
-            if fila.get("dependencia"):
-                # Buscar la subtarea que se menciona como dependencia
-                print(f"Buscando dependencia para subtarea '{fila['subtarea']}' con nombre '{fila['dependencia']}'")
-                dependencia_obj = await db.execute(
-                    select(SubtareaDB).filter(SubtareaDB.nombre == fila["dependencia"])
-                )
-                dependencia_obj = dependencia_obj.scalar_one_or_none()
-
-                # Depuración: Si se encuentra o no la dependencia
-                if dependencia_obj:
-                    print(f"Dependencia encontrada: {dependencia_obj.id} para '{fila['dependencia']}'")
-                else:
-                    print(f"No se encontró dependencia para subtarea '{fila['subtarea']}'")
-
-            # Verificar el valor de tiempo_esperado
-            tiempo_esperado = fila.get("tiempo esperado")
-            
-            # Intentar convertir el valor de tiempo_esperado en un float
+            # Verificar el valor de tiempo_probable
+            tiempo_probable = fila.get("tiempo probable")
             try:
-                tiempo_esperado = float(tiempo_esperado) if tiempo_esperado else 0.0
+                tiempo_probable = float(tiempo_probable) if tiempo_probable else 0.0
             except ValueError:
-                print(f"Error: el valor de 'tiempo esperado' no es válido para '{fila['subtarea']}'")
-                tiempo_esperado = 0.0
+                raise HTTPException(status_code=400, detail=f"El valor de 'tiempo probable' no es válido en la fila: {fila}")
 
-            # Imprimir el valor para verificar
-            print(f"Tiempo esperado para subtarea '{fila['subtarea']}': {tiempo_esperado}")
+            # Verificar si "subtareaID" está presente en el CSV
+            subtarea_id_csv = fila["subtareaID"] if fila["subtareaID"] else None
 
-            # Verificar si "subtareaID" está presente en el CSV y convertirlo a entero
-            subtarea_id_csv = int(fila["subtareaID"]) if fila["subtareaID"] else None
 
-            # Verificar si la subtarea ya existe en la tarea basada en el subtarea_id_csv
-            subtarea_obj = await db.execute(
-                select(SubtareaDB).filter(SubtareaDB.subtarea_id_csv == subtarea_id_csv, SubtareaDB.tarea_id == tarea_obj.id)
+            # Procesar dependencia si existe
+            dependencia_ids = []
+            if fila.get("dependencia"):
+                dependencias = fila["dependencia"].split(",")  # Manejar múltiples dependencias separadas por comas
+                for dep_id in dependencias:
+                    dep_id = dep_id.strip()  # Mantener el formato "x.x.x" como cadena
+                    # Validar que la dependencia es un identificador válido
+                    if not dep_id.replace(".", "").isdigit():
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"El valor de dependencia '{dep_id}' en la fila: {fila} no es un ID válido.",
+                        )
+                    dependencia_ids.append(dep_id)  # Guardar el valor como cadena
+
+
+            # Crear la subtarea
+            subtarea_obj = SubtareaDB(
+                nombre=fila["subtarea"],
+                tiempo_probable=tiempo_probable,
+                tarea_id=tarea_obj.id,
+                subtarea_id_csv=subtarea_id_csv,  # El subtarea_id_csv del CSV
+                dependencia_id=dependencia_ids,  # Lista de IDs de subtareas dependientes (formato x.x.x)
             )
-            subtarea_obj = subtarea_obj.scalar_one_or_none()
+            db.add(subtarea_obj)
+            await db.commit()
+            await db.refresh(subtarea_obj)
 
-            if not subtarea_obj:
-                # Si no existe la subtarea, la creamos
-                subtarea_obj = SubtareaDB(
-                    nombre=fila["subtarea"],
-                    dependencia_id=dependencia_obj.id if dependencia_obj else None,  # Aquí cambiamos 'dependencia' por 'dependencia_id'
-                    tiempo_esperado=tiempo_esperado,
-                    tarea_id=tarea_obj.id,
-                    subtarea_id_csv=subtarea_id_csv  # Aquí aseguramos que se pase como entero
-                )
-                db.add(subtarea_obj)
-                await db.commit()  # Guardar en la base de datos
-                await db.refresh(subtarea_obj)  # Refrescar el objeto para verificar que se guardó correctamente
-
-                # Verificar que se guardó correctamente
-                print(f"Subtarea '{subtarea_obj.nombre}' guardada con tiempo_esperado: {subtarea_obj.tiempo_esperado}")
-            else:
-                print(f"Subtarea '{subtarea_obj.nombre}' ya existe y no se vuelve a insertar.")
+            # Mapear subtareaID con el objeto creado
+            subtarea_id_map[subtarea_id_csv] = subtarea_obj
 
         return {"message": f"Proyecto '{nuevo_proyecto.nombre}' creado exitosamente"}
 
