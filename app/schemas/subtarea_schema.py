@@ -9,6 +9,7 @@ class SubtareaSchema(BaseModel):
     tiempo_optimista: float = None
     tiempo_pesimista: float = None
     tiempo_probable: float = None
+    tiempo_real: float = None
 
     class Config:
         from_attributes = True  # Habilita compatibilidad con ORMs para interactuar con modelos

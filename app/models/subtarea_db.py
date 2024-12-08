@@ -16,5 +16,6 @@ class SubtareaDB(Base):
     tarea_id = Column(Integer, ForeignKey("tareas.id"))
     dependencia_id = Column(ARRAY(String), nullable=True, default=list)  # Usar ARRAY para listas de enteros
     subtarea_id_csv = Column(String, nullable=True, default="0") # Cambiar a String para almacenar '1.1.1'
+    tiempoReal = Column(Float, nullable=False, default=0.0)
 
     tarea = relationship("TareaDB", back_populates="subtareas")
