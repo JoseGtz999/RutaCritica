@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, UploadFile, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional  # Importa Optional para permitir valores nulos
 from app.database import get_db  # Asegúrate de que get_db esté importado
 from app.services.csv_validacion_service import CSVValidacionService  # Importa correctamente la clase
 from app.services.proyecto_service import insertar_datos_proyecto
@@ -31,7 +32,12 @@ async def validar_proyecto_desde_csv(file: UploadFile, db: AsyncSession = Depend
     
 
 @router.post("/rutaCritica/crear_proyecto_desde_csv")
-async def crear_proyecto(file: UploadFile, db: AsyncSession = Depends(get_db)):
+async def crear_proyecto(
+    file: UploadFile, 
+    nombre_proyecto: Optional[str] = None,  # Parametro opcional para nombre del proyecto
+    descripcion: Optional[str] = None,  # Parametro opcional para descripcion
+    db: AsyncSession = Depends(get_db)
+):
     # Leer el contenido del archivo CSV
     csv_content = await file.read()
     csv_file = StringIO(csv_content.decode("utf-8"))
@@ -48,7 +54,7 @@ async def crear_proyecto(file: UploadFile, db: AsyncSession = Depends(get_db)):
     # Si no hay errores, insertar los datos en la base de datos
     return await insertar_datos_proyecto(
         db,
-        nombre_proyecto="Proyecto desde CSV",
-        descripcion="Importado desde archivo CSV",
+        nombre_proyecto=nombre_proyecto or "Proyecto desde CSV",  # Asigna un valor por defecto si es None
+        descripcion=descripcion or "Importado desde archivo CSV",  # Asigna un valor por defecto si es None
         datos=filas
     )
