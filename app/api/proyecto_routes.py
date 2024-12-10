@@ -108,11 +108,14 @@ async def obtener_subtareas_ruta_critica(db: AsyncSession = Depends(get_db)):
     Incluye nombre, tiempo probable, dependencia_id y subtarea_id_csv.
     """
     try:
-        # Llamamos al servicio que obtiene los datos de las subtareas para la ruta crítica
         subtareas = await obtener_datos_ruta_critica(db)
 
-        # Retornamos la lista de subtareas con la información deseada
+        # Validar y transformar los datos antes de enviarlos al frontend
+        for subtarea in subtareas:
+            subtarea["dependencia_id"] = subtarea.get("dependencia_id", []) or []  # Lista vacía si es nulo
+            subtarea["tiempo_probable"] = subtarea.get("tiempo_probable", 0)  # 0 si es nulo
+
         return {"estado": "exito", "subtareas": subtareas}
-    
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener las subtareas: {str(e)}")
+
